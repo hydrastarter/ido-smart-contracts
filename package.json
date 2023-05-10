@@ -1,0 +1,52 @@
+{
+  "name": "reef-crowdsale-contracts",
+  "description": "Smart contract for Reef Launchpad",
+  "version": "1.0.0",
+  "main": "hardhat.config.js",
+  "repository": "https://github.com/cryption-network/reef-crowdsale-contract",
+  "author": "Saurabh Lodha <saurabhlodha221b@gmail.com>",
+  "private": true,
+  "license": "ISC",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "coverage": "npx hardhat coverage",
+    "prepublish": "rimraf build contracts/build artifacts cache",
+    "prepare": "env COMPILE_MODE=production npm run compile",
+    "test": "npx hardhat test",
+    "deployCrowdsale:reef_mainnet": "HARDHAT_NETWORK=reef_mainnet npx hardhat run scripts/crowdsale/deploy_crowdsale.js",
+    "deployFactory:reef_mainnet": "HARDHAT_NETWORK=reef_mainnet npx hardhat run scripts/crowdsale/deploy_factory.js",
+    "addImplementation:reef_mainnet": "HARDHAT_NETWORK=reef_mainnet npx hardhat run scripts/crowdsale/add_Implementation.js"
+  },
+  "devDependencies": {
+    "@ethersproject/abi": "^5.4.7",
+    "@ethersproject/providers": "^5.4.7",
+    "@nomicfoundation/hardhat-chai-matchers": "^1.0.0",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.0",
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "@nomiclabs/hardhat-ethers": "^2.0.0",
+    "@nomiclabs/hardhat-etherscan": "^3.0.0",
+    "@openzeppelin/hardhat-upgrades": "^1.20.0",
+    "@typechain/ethers-v5": "^10.1.0",
+    "@typechain/hardhat": "^6.1.2",
+    "chai": "^4.2.0",
+    "ethers": "^5.4.7",
+    "hardhat": "^2.13.0",
+    "hardhat-gas-reporter": "^1.0.8",
+    "solidity-coverage": "^0.8.0",
+    "typechain": "^8.1.0"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-waffle": "^2.0.5",
+    "@openzeppelin/contracts": "^3.4.0",
+    "@openzeppelin/contracts-upgradeable": "^3.4.0",
+    "@reef-defi/hardhat-reef": "^1.0.13",
+    "chai-as-promised": "^7.1.1",
+    "dotenv": "^16.0.3",
+    "keccak256": "^1.0.6",
+    "merkletreejs": "^0.2.32",
+    "web3": "^1.7.0"
+  }
+}
