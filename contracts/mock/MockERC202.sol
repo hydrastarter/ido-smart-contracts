@@ -232,9 +232,9 @@ contract MockERC202 is OwnableUpgradeable {
         return tokenDecimals;
     }
 
-    function totalSupply() external view returns (uint256) {
-        return tokenTotalSupply;
-    }
+    // function totalSupply() external view returns (uint256) {
+    //     return tokenTotalSupply;
+    // }
 
     function balanceOf(address _owner) external view returns (uint256) {
         return balances[_owner];
