@@ -1,12 +1,8 @@
-# Reef Crowdsale Contracts
+# Reef Hydrastarter Contracts
 
 ## Steps to setup this project.
 
 - Clone Project Codebase
-
-```
-git clone https://github.com/cryption-network/reef-crowdsale-contract.git
-```
 
 Add a .env file in root directory. Duplicate the contents of `.env.example` file present in the same directory and update relevant fields.
 
@@ -22,9 +18,10 @@ yarn
 yarn run compile
 ```
 
-### Mainnet Deployed Contracts
+### Testnet Deployed Contracts
 
-| Name | Address |
-| :--- | :--- |
-| Launchpad Factory | 0xC58B97d8850f72A812BBdECA7Dd0672Ce406DAd4 |
-| Crowdsale | 0xb0F6fF9478f73402262Ec9CF4B77fF47c3358C33 |
+| Name | Address | Reefscan Link |
+| :--- | :--- | :--- |
+| Launchpad Factory | 0x61BD471D713b2E24b511bB0b598ec0Da3ba8DBef | [Reefscan Testnet](https://testnet.reefscan.com/contract/0x61BD471D713b2E24b511bB0b598ec0Da3ba8DBef) |
+| Crowdsale | 0x4F89489c7F5b6d665f6089157e249dF67Ed46f96 | [Reefscan Testnet](https://testnet.reefscan.com/contract/0x4F89489c7F5b6d665f6089157e249dF67Ed46f96) |
+

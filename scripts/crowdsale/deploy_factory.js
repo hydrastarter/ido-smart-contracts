@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 
 async function main() {
-  const deployerAccount = await hre.reef.getSignerByName("MyAccount1");
+  const deployerAccount = await hre.reef.getSignerByName("testnet_account");
 
   const LaunchpadFactory = await hre.reef.getContractFactory("LaunchpadFactory", deployerAccount);
   const launchpadFactoryInstance = await LaunchpadFactory.deploy();
