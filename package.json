@@ -15,7 +15,7 @@
     "prepare": "env COMPILE_MODE=production npm run compile",
     "test": "npx hardhat test",
     "deployCrowdsale:reef_mainnet": "HARDHAT_NETWORK=reef_mainnet npx hardhat run scripts/crowdsale/deploy_crowdsale.js",
-    "deployFactory:reef_mainnet": "HARDHAT_NETWORK=reef_mainnet npx hardhat run scripts/crowdsale/deploy_factory.js",
+    "deployFactory:reef_mainnet": "HARDHAT_NETWORK=reef_mainnet npx hardhat run scripts/crowdsale/deploy_factory_and_proxy.js",
     "addImplementation:reef_mainnet": "HARDHAT_NETWORK=reef_mainnet npx hardhat run scripts/crowdsale/add_Implementation.js",
     "deployProxy:reef_mainnet": "HARDHAT_NETWORK=reef_mainnet npx hardhat run scripts/crowdsale/deploy_proxy.js"
   },

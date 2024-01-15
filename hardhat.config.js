@@ -14,6 +14,7 @@ module.exports = {
       scanUrl: "https://api-testnet.reefscan.com",
       seeds: {
         testnet_account: process.env.MNEMONIC_TESTNET|| "expire pepper arena virus budget craft industry hawk devote major symbol labor",
+        proxy_admin_account: process.env.MNEMONIC_TESTNET|| "expire pepper arena virus budget craft industry hawk devote major symbol labor",
       },
     },
     reef_mainnet: {

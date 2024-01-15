@@ -1,14 +1,16 @@
 const hre = require("hardhat");
 
 async function main() {
-  const deployerAccount = await hre.reef.getSignerByName("MyAccount1");
+  const deployerAccount = await hre.reef.getSignerByName("testnet_account");
 
   const ProxyContract = await hre.reef.getContractFactory(
     "ProxyContract",
     deployerAccount
   );
-  const adminAddress = "0x557834D643b70A0E8015B0e1c174d512a8d67332";
-  const launchpadFactoryAddress = "0xC58B97d8850f72A812BBdECA7Dd0672Ce406DAd4";
+
+
+  const adminAddress = "0x...";
+  const launchpadFactoryAddress = "0x...";
   const proxyContractInstance = await ProxyContract.deploy(
     adminAddress,
     launchpadFactoryAddress
@@ -25,6 +27,8 @@ async function main() {
     "ProxyContract",
     [adminAddress, launchpadFactoryAddress]
   );
+
+  console.log("Deployed and verified");
 }
 
 main()
