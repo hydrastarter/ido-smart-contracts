@@ -16,7 +16,7 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const testnetAccount = await hre.reef.getSignerByName("MyAccount1");
+  const testnetAccount = await hre.reef.getSignerByName("testnet_account");
   await testnetAccount.claimDefaultAccount();
 
   const Crowdsale = await hre.reef.getContractFactory("Crowdsale", testnetAccount);
