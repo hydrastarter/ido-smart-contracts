@@ -12,7 +12,11 @@ async function main() {
   console.log("Deploy done");
   console.log("Launchpad factory deployed:", launchpadFactoryInstance.address);
 
-  await hre.reef.verifyContract(launchpadFactoryInstance.address, "LaunchpadFactory", []);
+  await hre.reef.verifyContract(
+    launchpadFactoryInstance.address,
+    "LaunchpadFactory",
+    []
+  );
 }
 
 main()
