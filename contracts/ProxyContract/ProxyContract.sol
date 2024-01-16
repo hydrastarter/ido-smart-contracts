@@ -57,7 +57,7 @@ contract ProxyContract is AccessControl {
             address(this),
             amountAllocation
         );
-         TransferHelper.safeApprove(
+        TransferHelper.safeApprove(
             address(projectToken),
             address(launchpadFactory),
             amountAllocation
@@ -65,10 +65,30 @@ contract ProxyContract is AccessControl {
         return launchpadFactory.launchCrowdsale(_id, _implementationData);
     }
 
+    function updateImplementation(
+        uint256 _id,
+        address _newImplementation
+    ) external onlyAdmin {
+        launchpadFactory.updateImplementation(_id, _newImplementation);
+    }
+
+    function addImplementation(address _newImplementation) external onlyAdmin {
+        launchpadFactory.addImplementation(_newImplementation);
+    }
+
     function updateLaunchpadFactoryAddress(
         ILaunchpadFactory _launchpadFactory
     ) external onlyAdmin {
         launchpadFactory = _launchpadFactory;
+    }
+
+    function withdrawERC20(IERC20 _token) external onlyAdmin {
+      launchpadFactory.withdrawERC20()
+        TransferHelper.safeTransfer(
+            address(_token),
+            msg.sender,
+            _token.balanceOf(address(this))
+        );
     }
 
     function addDeployerAddress(address _address) external onlyAdmin {
