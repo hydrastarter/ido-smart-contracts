@@ -1,214 +1,197 @@
 const { expect, assert } = require("chai");
-const { parseEther } = require("ethers/lib/utils");
 const { ethers } = require("hardhat");
-const { BigNumber } = ethers.utils;
 const Web3 = require("web3");
 const web3 = new Web3();
 
 describe("LaunchpadFactory", function async() {
-  let erc20Contract, owner, launchpadFactoryContract, startTime, referrer;
-  let crowdSaleLibrary,
-    tokenURL = "ipfs://hlajsfohaslnfsf";
+  let owner, deployer, investor, otherAccount, launchpadFactory, proxyContract, inputToken, crowdsaleToken;
+  let startTime, endTime, vestingStart, vestingEnd, cliffDuration, whitelistEnabled, whitelistAddresses, amountAllocation, rate, crowdsaleOwner, tokenURL, minTokenSaleAmount, maxUserAllocation;
+
   beforeEach(async () => {
     accounts = await ethers.getSigners();
     owner = accounts[0];
-    referrer = accounts[7];
+    deployer = accounts[1];
+    investor = accounts[2];
+    crowdsaleOwner = accounts[3];
+    otherAccount = accounts[4];
 
     const MockERC20 = await ethers.getContractFactory("MockERC20");
+    crowdsaleToken = await MockERC20.connect(deployer).deploy("ABC", "XYZ", 18);
+    inputToken = await MockERC20.connect(investor).deploy("DUM", "DUMMY", 18);
+
+    const LaunchpadFactory = await ethers.getContractFactory("LaunchpadFactory");
+    launchpadFactory = await LaunchpadFactory.connect(owner).deploy();
+
     const ProxyContract = await ethers.getContractFactory("ProxyContract");
-    erc20Contract = await MockERC20.connect(owner).deploy("DUM", "DUMMY", 18);
-
-    await erc20Contract
-      .connect(owner)
-      .transfer(accounts[1].address, "500000000000000000000000");
-    await erc20Contract
-      .connect(owner)
-      .transfer(accounts[0].address, "500000000000000000000000");
-    await erc20Contract
-      .connect(owner)
-      .transfer(accounts[2].address, "500000000000000000000000");
-
-    // const FeeManager = await ethers.getContractFactory('MockFeeManager');
-
-    // const feeManager = await FeeManager.connect(owner).deploy();
-
-    purchaseTokenContract = await MockERC20.connect(owner).deploy(
-      "ABC",
-      "XYZ",
-      18
-    );
-
-    await purchaseTokenContract
-      .connect(owner)
-      .transfer(accounts[2].address, "2000000000000000000");
-    const LaunchpadFactory = await ethers.getContractFactory(
-      "LaunchpadFactory"
-    );
-    launchpadFactoryContract = await LaunchpadFactory.connect(owner).deploy();
-    proxyContractInstance = await ProxyContract.connect(owner).deploy(
+    proxyContract = await ProxyContract.connect(owner).deploy(
       owner.address,
-      launchpadFactoryContract.address
+      launchpadFactory.address
     );
+
     const Crowdsale = await ethers.getContractFactory("Crowdsale");
-    crowdSaleLibrary = await Crowdsale.deploy();
-    // await launchpadFactoryContract.connect(owner).initialize(0)
-    await launchpadFactoryContract
-      .connect(owner)
-      .addImplementation(crowdSaleLibrary.address);
-    await launchpadFactoryContract.transferOwnership(
-      proxyContractInstance.address
-    );
-    // await launchpadFactoryContract.connect(owner).updateFeeManagerMode(false, feeManager.address);
+    const crowdSaleImpl = await Crowdsale.deploy();
+    
+    await launchpadFactory.setCrowdsaleLauncher(proxyContract.address);
+    await launchpadFactory.connect(owner).addImplementation(crowdSaleImpl.address);
+
     startTime = (Date.now() / 1000).toFixed() + 100;
     endTime = parseInt(startTime) + 10000;
-    cliffDurationInSecs = parseInt(startTime) + 1000;
-  });
-  it("should have the correct initial roles", async function () {
-    expect(
-      await proxyContractInstance.hasRole(
-        await proxyContractInstance.DEFAULT_ADMIN_ROLE(),
-        owner.address
-      )
-    ).to.equal(true);
-    expect(
-      await proxyContractInstance.hasRole(
-        await proxyContractInstance.DEPLOYER_ROLE(),
-        owner.address
-      )
-    ).to.equal(true);
+    vestingStart = parseInt(endTime) + 1000;
+    vestingEnd = parseInt(vestingStart) + 1000;
+    cliffDuration = 500;
+    whitelistEnabled = false;
+    whitelistAddresses = [];
+    amountAllocation = toToken(100);
+    minTokenSaleAmount = toToken(10);
+    maxUserAllocation = toToken(50);
+    rate = toToken(1, 18);
+    tokenURL = "ipfs://QmQ3Z1X";
   });
 
-  it("should successfully launch new crowdsale contract", async function () {
-    const crowdsaleCreator = accounts[0];
-    console.log("crowdsaleCreator", crowdsaleCreator.address);
-    console.log("proxyContractInstance", proxyContractInstance.address);
-    // await erc20Contract
-    //   .connect(crowdsaleCreator)
-    //   .approve(launchpadFactoryContract.address, "99000000000000000000000000");
-    await erc20Contract
-      .connect(crowdsaleCreator)
-      .approve(proxyContractInstance.address, "99000000000000000000000000");
-    const balance = await erc20Contract.balanceOf(crowdsaleCreator.address);
-    console.log("balance", balance);
-    const startTime = parseInt((Date.now() / 1000).toFixed()) + 1000;
+  it("should launch new crowdsale", async function () {
+    await proxyContract.connect(owner).addDeployerAddress(deployer.address);
 
-    const crowdsaleTimings = web3.eth.abi.encodeParameters(
-      ["uint128", "uint128", "uint128", "uint128", "uint128"],
-      [startTime, "0", "0", "0", "0"]
-    );
+    await crowdsaleToken.connect(deployer).approve(proxyContract.address, amountAllocation);
 
-    const whitelist = web3.eth.abi.encodeParameters(
-      ["bool", "address[]"],
-      ["false", []]
-    );
+    const deployerBalanceBefore = await crowdsaleToken.balanceOf(deployer.address);
 
-    const encodedData = web3.eth.abi.encodeParameters(
-      [
-        "address",
-        "uint256",
-        "address[]",
-        "uint256",
-        "bytes",
-        "bytes",
-        "address",
-        "string",
-        "uint256",
-        "uint256",
-      ],
-      [
-        erc20Contract.address,
-        100,
-        [purchaseTokenContract.address],
-        1,
-        crowdsaleTimings,
-        whitelist,
-        crowdsaleCreator.address,
-        tokenURL,
-        10,
-        50,
-      ]
-    );
-    console.log("data", [
-      erc20Contract.address,
-      100,
-      [purchaseTokenContract.address],
-      1,
-      crowdsaleTimings,
-      whitelist,
-      crowdsaleCreator.address,
+    const encodedData = encodeImplData(
+      startTime,
+      endTime,
+      vestingStart,
+      vestingEnd,
+      cliffDuration,
+      whitelistEnabled,
+      whitelistAddresses,
+      crowdsaleToken.address,
+      amountAllocation,
+      [inputToken.address],
+      rate,
+      crowdsaleOwner.address,
       tokenURL,
-      10,
-    ]);
-    const txObject = await proxyContractInstance
-      .connect(crowdsaleCreator)
-      .launchCrowdsale(0, encodedData);
+      minTokenSaleAmount,
+      maxUserAllocation
+    );
 
-    const receipt = await txObject.wait();
-
+    const tx = await proxyContract.connect(deployer).launchCrowdsale(0, encodedData);
+    const receipt = await tx.wait();
     assert.isOk(receipt.status);
 
-    const newCrowdsaleAddress = await launchpadFactoryContract.crowdsales(0);
-
-    const newCrowdsaleInstance = await ethers.getContractAt(
+    const newCrowdsaleObj = await launchpadFactory.crowdsales(0);
+    const newCrowdsale = await ethers.getContractAt(
       "Crowdsale",
-      newCrowdsaleAddress.crowdsaleAddress
+      newCrowdsaleObj.crowdsaleAddress
     );
 
-    const owner = await newCrowdsaleInstance.owner();
+    const newCrowdsaleOwner = await newCrowdsale.owner();
+    const newCrowdsaleToken = await newCrowdsale.token();
+    const newCrowdsaleIsValidInputToken = await newCrowdsale.validInputToken(inputToken.address);
+    const newCrowdsaleInputToken = await newCrowdsale.inputToken(0);
+    const newCrowdsaleInputTokenRate = await newCrowdsale.inputTokenRate(inputToken.address);
+    const newCrowdsaleCliffDuration = await newCrowdsale.cliffDuration();
+    const newCrowdsaleVestingStart = await newCrowdsale.vestingStart();
+    const newCrowdsaleVestingEnd = await newCrowdsale.vestingEnd();
+    const newCrowdsaleStartTime = await newCrowdsale.crowdsaleStartTime();
+    const newCrowdsaleEndTime = await newCrowdsale.crowdsaleEndTime();
+    const newCrowdsaleTokenAllocated = await newCrowdsale.crowdsaleTokenAllocated();
+    const newCrowdsaleTokenRemainingForSale = await newCrowdsale.tokenRemainingForSale();
+    const newCrowdsaleMinTokenSaleAmount = await newCrowdsale.minimumTokenSaleAmount();
+    const newCrowdsaleMaxUserAllocation = await newCrowdsale.maxUserAllocation();
+    const newCrowdsaleWhitelistEnabled = await newCrowdsale.whitelistingEnabled();
+    const deployerBalanceAfter = await crowdsaleToken.balanceOf(deployer.address);
+    const newCrowdsaleBalance = await crowdsaleToken.balanceOf(newCrowdsale.address);
 
-    assert.equal(owner, crowdsaleCreator.address, "Invalid crowdsale owner");
-
-    const inContractStartTime = await newCrowdsaleInstance.crowdsaleStartTime();
-    const inContractEndTime = await newCrowdsaleInstance.crowdsaleEndTime();
-    const inContractCliffDurationTime =
-      await newCrowdsaleInstance.cliffDuration();
-
-    assert.strictEqual(
-      inContractStartTime.eq(startTime),
-      true,
-      `Expected start time for crowdsale is ${startTime} but got ${inContractStartTime} `
+    assert.equal(
+      newCrowdsaleOwner,
+      crowdsaleOwner.address,
+      "Invalid crowdsale owner"
     );
-
-    assert.strictEqual(
-      inContractEndTime.eq(0),
-      true,
-      `Expected start time for crowdsale is ${startTime} but got ${inContractEndTime} `
+    assert.equal(
+      newCrowdsaleToken,
+      crowdsaleToken.address,
+      "Invalid crowdsale token"
     );
-
-    assert.strictEqual(
-      inContractCliffDurationTime.eq(0),
+    assert.equal(
+      newCrowdsaleIsValidInputToken,
       true,
-      `Expected start time for crowdsale is ${startTime} but got ${inContractCliffDurationTime} `
+      "Invalid crowdsale input token"
+    );
+    assert.equal(
+      newCrowdsaleInputToken,
+      inputToken.address,
+      "Invalid crowdsale input token"
+    );
+    assert.equal(
+      newCrowdsaleInputTokenRate.toString(),
+      rate.toString(),
+      "Invalid crowdsale input token rate"
+    );
+    assert.equal(
+      newCrowdsaleCliffDuration,
+      cliffDuration,
+      "Invalid crowdsale cliff duration"
+    );
+    assert.equal(
+      newCrowdsaleVestingStart,
+      vestingStart,
+      "Invalid crowdsale vesting start"
+    );
+    assert.equal(
+      newCrowdsaleVestingEnd,
+      vestingEnd,
+      "Invalid crowdsale vesting end"
+    );
+    assert.equal(
+      newCrowdsaleStartTime,
+      startTime,
+      "Invalid crowdsale start time"
+    );
+    assert.equal(
+      newCrowdsaleEndTime,
+      endTime,
+      "Invalid crowdsale end time"
+    );
+    assert.equal(
+      newCrowdsaleTokenAllocated.toString(),
+      amountAllocation.toString(),
+      "Invalid crowdsale token allocation"
+    );
+    assert.equal(
+      newCrowdsaleTokenRemainingForSale.toString(),
+      amountAllocation.toString(),
+      "Invalid crowdsale token remaining for sale"
+    );
+    assert.equal(
+      newCrowdsaleMinTokenSaleAmount.toString(),
+      minTokenSaleAmount.toString(),
+      "Invalid crowdsale minimum token sale amount"
+    );
+    assert.equal(
+      newCrowdsaleMaxUserAllocation.toString(),
+      maxUserAllocation.toString(),
+      "Invalid crowdsale max user allocation"
+    );
+    assert.equal(
+      newCrowdsaleWhitelistEnabled,
+      whitelistEnabled,
+      "Invalid crowdsale whitelist enabled"
+    );
+    assert.equal(
+      deployerBalanceAfter.toString(),
+      deployerBalanceBefore.sub(amountAllocation).toString(),
+      "Invalid deployer balance"
+    );
+    assert.equal(
+      newCrowdsaleBalance.toString(),
+      amountAllocation.toString(),
+      "Invalid crowdsale balance"
     );
   });
 
   it("should update owner of LaunchpadFactory", async function () {
-    const newOwner = accounts[2].address;
-    await proxyContractInstance.updateOwnerOfLaunchpadFactory(newOwner);
-    expect(await launchpadFactoryContract.owner()).to.equal(newOwner);
+    await launchpadFactory.connect(owner).transferOwnership(otherAccount.address);
+    expect(await launchpadFactory.owner()).to.equal(otherAccount.address);
   });
-
-   it("should add and remove deployer address", async function () {
-     const newDeployer = accounts[2].address;
-
-     // Add new deployer
-     await proxyContractInstance.addDeployerAddress(newDeployer);
-     expect(
-       await proxyContractInstance.hasRole(
-         await proxyContractInstance.DEPLOYER_ROLE(),
-         newDeployer
-       )
-     ).to.be.true;
-
-     // Remove deployer
-     await proxyContractInstance.removeDeployerAddress(newDeployer);
-     expect(
-       await proxyContractInstance.hasRole(
-         await proxyContractInstance.DEPLOYER_ROLE(),
-         newDeployer
-       )
-     ).to.be.false;
-   });
 
   // it("should successfully launch new crowdsale contract and whitelist user", async function () {
 
@@ -585,11 +568,80 @@ describe("LaunchpadFactory", function async() {
   // });
 
   it("should update LaunchpadFactory address", async function () {
-    await proxyContractInstance.updateLaunchpadFactoryAddress(
+    await proxyContract.updateLaunchpadFactoryAddress(
       "0x0B306BF915C4d645ff596e518fAf3F9669b97016"
     );
-    expect(await proxyContractInstance.launchpadFactory()).to.equal(
+    expect(await proxyContract.launchpadFactory()).to.equal(
       "0x0B306BF915C4d645ff596e518fAf3F9669b97016"
     );
   });
 });
+
+const encodeImplData = (
+  startTime,
+  endTime,
+  vestingStart,
+  vestingEnd,
+  cliffDuration,
+  whitelistEnabled,
+  whitelistAddresses,
+  crowdsaleToken,
+  amountAllocation,
+  inputTokens,
+  rate,
+  crowdsaleOwner,
+  tokenURL,
+  minTokenSaleAmount,
+  maxUserAllocation
+) => {
+  const crowdsaleTimings = web3.eth.abi.encodeParameters(
+    ["uint128", "uint128", "uint128", "uint128", "uint128"],
+    [startTime, endTime, vestingStart, vestingEnd, cliffDuration]
+  );
+
+  const whitelist = web3.eth.abi.encodeParameters(
+    ["bool", "address[]"],
+    [whitelistEnabled, whitelistAddresses]
+  );
+
+  const encodedData = web3.eth.abi.encodeParameters(
+    [
+      "address",
+      "uint256",
+      "address[]",
+      "uint256",
+      "bytes",
+      "bytes",
+      "address",
+      "string",
+      "uint256",
+      "uint256",
+    ],
+    [
+      crowdsaleToken,
+      amountAllocation,
+      inputTokens,
+      rate,
+      crowdsaleTimings,
+      whitelist,
+      crowdsaleOwner,
+      tokenURL,
+      minTokenSaleAmount,
+      maxUserAllocation,
+    ]
+  );
+
+  return encodedData;
+};
+
+const toToken = (value, decimals = 18) => {
+  return ethers.utils.parseUnits(value.toString(), decimals);
+};
+
+const toWei = (value) => {
+  return ethers.utils.parseUnits(value.toString(), "wei");
+};
+
+const formatBigNumber = (bigNumber, decimals = 18) => {
+  return Number(ethers.utils.formatUnits(bigNumber.toString(), decimals));
+};

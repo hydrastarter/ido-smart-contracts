@@ -27,15 +27,30 @@ contract LaunchpadFactory is Ownable, CloneBase {
     /// @notice Counter for saving implementation IDs
     uint256 public nextId;
 
+    /// @notice Authorized address to launch crowdsales
+    address public crowdsaleLauncher;
+
     event CrowdsaleLaunched(
         uint256 indexed id,
         address indexed crowdsaleAddress,
         IERC20 indexed token
     );
 
+    event CrowdsaleLauncherUpdated(address newCrowdsaleLauncher);
+
     event ImplementationAdded(uint256 id, address newImplementation);
 
     event ImplementationUpdated(uint256 id, address updatedImplementation);
+
+    /// @notice Sets crowdsale laucher address.
+    /// @dev Address zero allowed for disabling crowdsale launcher.
+    /// @param _crowdsaleLauncher The address of the new crowdsale launcher.
+    function setCrowdsaleLauncher(
+        address _crowdsaleLauncher
+    ) external onlyOwner {
+        crowdsaleLauncher = _crowdsaleLauncher;
+        emit CrowdsaleLauncherUpdated(_crowdsaleLauncher);
+    }
 
     /// @notice Adds a new implementation with the given address.
     /// @param _newImplementation The address of the new implementation.
@@ -72,7 +87,11 @@ contract LaunchpadFactory is Ownable, CloneBase {
     function launchCrowdsale(
         uint256 _id,
         bytes memory _implementationData
-    ) external onlyOwner returns (address crowdsaleAddress) {
+    ) external returns (address crowdsaleAddress) {
+        require(
+            msg.sender == crowdsaleLauncher,
+            "LaunchpadFactory: Only launcher"
+        );
         crowdsaleAddress = _launchCrowdsale(_id, _implementationData);
     }
 

@@ -43,9 +43,9 @@ async function main() {
       [proxyAdminAddress, launchpadFactoryAddress]
   );
 
-  await launchpadFactoryInstance.transferOwnership(proxyContractInstance.address);
+  await launchpadFactoryInstance.setCrowdsaleLauncher(proxyContractInstance.address);
 
-  console.log('3/3 Transfered factory ownersip to proxy');
+  console.log('3/3 Crowdsale launcher set to proxy');
 
   console.log('All complete');
 
