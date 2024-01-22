@@ -223,6 +223,9 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
                 vestingEnd > vestingStart.add(cliffDuration),
                 "Crowdsale: Vesting End Time should after the cliffPeriod"
             );
+        } else {
+            require(vestingStart == 0 && vestingEnd == 0 && cliffDuration == 0,
+            "Crowdsale: Vesting values should be zero if crowdsaleEndTime is zero");
         }
 
         tokenRemainingForSale = crowdsaleTokenAllocated;
