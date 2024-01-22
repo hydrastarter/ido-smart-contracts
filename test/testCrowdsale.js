@@ -427,6 +427,149 @@ describe("Crowdsale", function async() {
     assert.equal(userTokenBalBefore.toString(), userTokenBalAfter.toString());
   });
 
+  it("should revert if end of cliff not reached", async function () { 
+    const inputTokenAmount = minTokenSaleAmount;
+    const crowdsale = await deployCrowdsale();
+
+    await advanceTime(100);
+    await inputToken.connect(investor).approve(crowdsale.address, inputTokenAmount);
+    await crowdsale.connect(investor).purchaseToken(inputToken.address, inputTokenAmount);
+
+    await advanceTime(vestingStart - (await latestTimestamp()) + cliffDuration - 1);
+    await expect(crowdsale.connect(investor).drawDown()).to.be.revertedWith("Crowdsale: No allowance left to withdraw");
+  });
+
+  it("should withdraw all crowdsale tokens after vesting ended", async function () { 
+    const inputTokenAmount = minTokenSaleAmount.add(1);
+    const crowdsale = await deployCrowdsale();
+
+    await advanceTime(100);
+    await inputToken.connect(investor).approve(crowdsale.address, inputTokenAmount);
+    await crowdsale.connect(investor).purchaseToken(inputToken.address, inputTokenAmount);
+
+    await advanceTime(vestingEnd - (await latestTimestamp()));
+    const userTokenBalBefore = await crowdsaleToken.balanceOf(investor.address);
+    await crowdsale.connect(investor).drawDown();
+    const userTokenBalAfter = await crowdsaleToken.balanceOf(investor.address);
+
+    assert.equal(userTokenBalAfter.toString(), userTokenBalBefore.add(inputTokenAmount).toString());
+  });
+
+  it("should withdraw crowdsale progressively", async function () { 
+    const inputTokenAmount = minTokenSaleAmount.add(1);
+    const crowdsale = await deployCrowdsale();
+
+    await advanceTime(100);
+    await inputToken.connect(investor).approve(crowdsale.address, inputTokenAmount);
+    await crowdsale.connect(investor).purchaseToken(inputToken.address, inputTokenAmount);
+
+    const initialUserTokenBal = await crowdsaleToken.balanceOf(investor.address);
+
+    await advanceTime(vestingStart - (await latestTimestamp()) + cliffDuration + 100);
+    let userTokenBalBefore = initialUserTokenBal
+    await crowdsale.connect(investor).drawDown();
+    let userTokenBalAfter = await crowdsaleToken.balanceOf(investor.address);
+    assert(userTokenBalAfter.gt(userTokenBalBefore));
+
+    await advanceTime(200);
+    userTokenBalBefore = userTokenBalAfter
+    await crowdsale.connect(investor).drawDown();
+    userTokenBalAfter = await crowdsaleToken.balanceOf(investor.address);
+    assert(userTokenBalAfter.gt(userTokenBalBefore));
+
+    await advanceTime(200);
+    userTokenBalBefore = userTokenBalAfter
+    await crowdsale.connect(investor).drawDown();
+    userTokenBalAfter = await crowdsaleToken.balanceOf(investor.address);
+    assert(userTokenBalAfter.gt(userTokenBalBefore));
+
+    await advanceTime(20);
+    userTokenBalBefore = userTokenBalAfter
+    await crowdsale.connect(investor).drawDown();
+    userTokenBalAfter = await crowdsaleToken.balanceOf(investor.address);
+    assert(userTokenBalAfter.gt(userTokenBalBefore));
+
+    assert.equal(userTokenBalAfter.toString(), initialUserTokenBal.add(inputTokenAmount).toString());
+  });
+
+  it("should transfer input tokens to owner if minimum crowdsale amount reached", async function () { 
+    const inputTokenAmount = minTokenSaleAmount.mul(2);
+    const crowdsale = await deployCrowdsale();
+
+    await advanceTime(100);
+    await inputToken.connect(investor).approve(crowdsale.address, inputTokenAmount);
+    await crowdsale.connect(investor).purchaseToken(inputToken.address, inputTokenAmount);
+
+    await advanceTime(endTime - (await latestTimestamp()));
+    const ownerInputTokenBalBefore = await inputToken.balanceOf(crowdsaleOwner.address);
+    await crowdsale.connect(crowdsaleOwner).withdrawFunds(inputToken.address, inputTokenAmount);
+    const ownerInputTokenBalAfter = await inputToken.balanceOf(crowdsaleOwner.address);
+
+    assert.equal(ownerInputTokenBalAfter.toString(), ownerInputTokenBalBefore.add(inputTokenAmount).toString());
+  });
+
+  it("should transfer crowdsale tokens not sold to owner if minimum crowdsale amount reached", async function () { 
+    const inputTokenAmount = minTokenSaleAmount.add(100);
+    const crowdsale = await deployCrowdsale();
+
+    await advanceTime(100);
+    await inputToken.connect(investor).approve(crowdsale.address, inputTokenAmount);
+    await crowdsale.connect(investor).purchaseToken(inputToken.address, inputTokenAmount);
+
+    await advanceTime(endTime - (await latestTimestamp()));
+    const amountNotSold = amountAllocation.sub(inputTokenAmount);
+    const ownerCrowdsaleTokenBalBefore = await crowdsaleToken.balanceOf(crowdsaleOwner.address);
+    await crowdsale.connect(crowdsaleOwner).withdrawFunds(crowdsaleToken.address, amountNotSold);
+    const ownerCrowdsaleTokenBalAfter = await crowdsaleToken.balanceOf(crowdsaleOwner.address);
+
+    assert.equal(ownerCrowdsaleTokenBalAfter.toString(), ownerCrowdsaleTokenBalBefore.add(amountNotSold).toString());
+  });
+
+  it("should transfer all crowdsale tokens to owner if minimum crowdsale amount not reached", async function () { 
+    const inputTokenAmount = minTokenSaleAmount.sub(1);
+    const crowdsale = await deployCrowdsale();
+
+    await advanceTime(100);
+    await inputToken.connect(investor).approve(crowdsale.address, inputTokenAmount);
+    await crowdsale.connect(investor).purchaseToken(inputToken.address, inputTokenAmount);
+
+    await advanceTime(endTime - (await latestTimestamp()));
+    const ownerCrowdsaleTokenBalBefore = await crowdsaleToken.balanceOf(crowdsaleOwner.address);
+    await crowdsale.connect(crowdsaleOwner).withdrawFunds(crowdsaleToken.address, amountAllocation);
+    const ownerCrowdsaleTokenBalAfter = await crowdsaleToken.balanceOf(crowdsaleOwner.address);
+
+    assert.equal(ownerCrowdsaleTokenBalAfter.toString(), ownerCrowdsaleTokenBalBefore.add(amountAllocation).toString());
+  });
+
+  it("should revert if owner tries to withdraw input tokens when minimum crowdsale amount not reached", async function () { 
+    const inputTokenAmount = minTokenSaleAmount.sub(1);
+    const crowdsale = await deployCrowdsale();
+
+    await advanceTime(100);
+    await inputToken.connect(investor).approve(crowdsale.address, inputTokenAmount);
+    await crowdsale.connect(investor).purchaseToken(inputToken.address, inputTokenAmount);
+
+    await advanceTime(endTime - (await latestTimestamp()));
+
+    await expect(crowdsale.connect(crowdsaleOwner).withdrawFunds(inputToken.address, inputTokenAmount))
+      .to.be.revertedWith("Crowdsale: Only crowdsale token can be withdrawn");
+  });
+
+  it("should revert if owner tries to withdraw crowdsale tokens sold", async function () { 
+    const inputTokenAmount = minTokenSaleAmount.mul(2);
+    const crowdsale = await deployCrowdsale();
+
+    await advanceTime(100);
+    await inputToken.connect(investor).approve(crowdsale.address, inputTokenAmount);
+    await crowdsale.connect(investor).purchaseToken(inputToken.address, inputTokenAmount);
+
+    await advanceTime(endTime - (await latestTimestamp()));
+
+    const amountNotSold = amountAllocation.sub(inputTokenAmount);
+    await expect(crowdsale.connect(crowdsaleOwner).withdrawFunds(crowdsaleToken.address, amountNotSold.add(1)))
+      .to.be.revertedWith("Crowdsale: Can only withdraw unsold tokens");
+  });
+
   it("should update owner of Crowdsale", async function () {
     await launchpadFactory.connect(owner).transferOwnership(otherAccount.address);
     expect(await launchpadFactory.owner()).to.equal(otherAccount.address);

@@ -545,6 +545,20 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
             "Crowdsale: The contract doesnt have tokens"
         );
 
+        if (
+            crowdsaleTokenAllocated.sub(tokenRemainingForSale) <
+            minimumTokenSaleAmount
+        ) {
+            require(
+                _token == token,
+                "Crowdsale: Only crowdsale token can be withdrawn"
+            );
+        } else if (_token == token) {
+            require (
+                _amount <= tokenRemainingForSale,
+                "Crowdsale: Can only withdraw unsold tokens");
+        }
+
         TransferHelper.safeTransfer(address(_token), msg.sender, _amount);
 
         emit FundsWithdrawn(msg.sender, _token, _amount);
@@ -595,6 +609,9 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
     function updateMinimumTokenSaleAmount(
         uint256 _minimumTokenSaleAmount
     ) external onlyOwner {
+        if (crowdsaleEndTime != 0) {
+            require(_getNow() < crowdsaleEndTime, "Crowdsale: Crowdsale Ended");
+        }
         require(
             _minimumTokenSaleAmount <= crowdsaleTokenAllocated,
             "Crowdsale: Minimum Token Sale amount cannot be greater than total token allowence"
