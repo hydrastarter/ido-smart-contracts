@@ -52,13 +52,6 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
         uint256 tokenRemaining
     );
 
-    /// @notice event emitted when a successful drawn down of vesting tokens is made
-    event DrawDown(
-        address indexed _investor,
-        uint256 _amount,
-        uint256 indexed drawnTime
-    );
-
     /// @notice event emitted when crowdsale is ended manually
     event CrowdsaleEndedManually(uint256 indexed crowdsaleEndedManuallyAt);
 
@@ -197,8 +190,6 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
 
         crowdsaleTokenAllocated = crowdsaleTokenAllocated.sub(tokenPurchased);
         _updateVestingSchedule(msg.sender, tokenPurchased);
-
-        // _drawDown(msg.sender);
 
         TransferHelper.safeTransfer(address(token), msg.sender, tokenPurchased);
 
