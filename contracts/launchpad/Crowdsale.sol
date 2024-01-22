@@ -445,7 +445,7 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
         );
 
         if (
-            crowdsaleTokenAllocated.sub(tokenRemainingForSale) <=
+            crowdsaleTokenAllocated.sub(tokenRemainingForSale) <
             minimumTokenSaleAmount
         ) {
             for (uint256 i = 0; i < inputToken.length; i++) {

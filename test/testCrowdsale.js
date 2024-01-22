@@ -396,7 +396,7 @@ describe("Crowdsale", function async() {
   });
 
   it("should return input tokens if minimum crowdsale amount not reached", async function () { 
-    const inputTokenAmount = minTokenSaleAmount;
+    const inputTokenAmount = minTokenSaleAmount.sub(1);
     const crowdsale = await deployCrowdsale();
 
     await advanceTime(100);
