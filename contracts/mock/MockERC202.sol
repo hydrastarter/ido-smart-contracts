@@ -1,6 +1,6 @@
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-pragma solidity ^0.7.6;
+pragma solidity 0.7.6;
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 
