@@ -90,23 +90,23 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
         (
             token,
             crowdsaleTokenAllocated,
+            owner,
             inputTokens,
-            _rate,
-            crowdsaleEndTime
+            _rate
         ) = abi.decode(
             _encodedData,
-            (IERC20, uint256, IERC20[], uint256[], uint256)
+            (IERC20, uint256, address, IERC20[], uint256[])
         );
 
-        (, , , , , owner, tokenURL, maxUserAllocation) = abi.decode(
+        (, , , , , crowdsaleEndTime, tokenURL, maxUserAllocation) = abi.decode(
             _encodedData,
             (
                 IERC20,
                 uint256,
+                address,
                 IERC20[],
                 uint256[],
                 uint256,
-                address,
                 string,
                 uint256
             )

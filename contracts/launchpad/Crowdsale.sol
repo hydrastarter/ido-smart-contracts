@@ -144,12 +144,12 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
         (
             token,
             crowdsaleTokenAllocated,
+            owner,
             inputTokens,
-            _rate,
-            _crowdsaleTimings
+            _rate
         ) = abi.decode(
             _encodedData,
-            (IERC20, uint256, IERC20[], uint256[], bytes)
+            (IERC20, uint256, address, IERC20[], uint256[])
         );
         (
             ,
@@ -157,8 +157,8 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
             ,
             ,
             ,
+            _crowdsaleTimings,
             _whitelist,
-            owner,
             tokenURL,
             minimumTokenSaleAmount,
             maxUserAllocation
@@ -167,11 +167,11 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
             (
                 IERC20,
                 uint256,
+                address,
                 IERC20[],
                 uint256,
                 bytes,
                 bytes,
-                address,
                 string,
                 uint256,
                 uint256

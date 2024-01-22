@@ -103,6 +103,11 @@ describe("LaunchpadFactory", function async() {
       "Invalid project token"
     );
     assert.equal(
+      newCrowdsaleInfo.owner,
+      crowdsaleOwner.address,
+      "Invalid crowdsale owner"
+    );
+    assert.equal(
       deployerBalanceAfter.toString(),
       deployerBalanceBefore.sub(amountAllocation).toString(),
       "Invalid deployer balance"
@@ -184,11 +189,11 @@ const encodeImplData = (
       [
         "address",
         "uint256",
+        "address",
         "address[]",
         "uint256[]",
         "bytes",
         "bytes",
-        "address",
         "string",
         "uint256",
         "uint256",
@@ -196,11 +201,11 @@ const encodeImplData = (
       [
         crowdsaleToken,
         amountAllocation,
+        crowdsaleOwner,
         inputTokens,
         rate,
         crowdsaleTimings,
         whitelist,
-        crowdsaleOwner,
         tokenURL,
         minTokenSaleAmount,
         maxUserAllocation,

@@ -138,10 +138,11 @@ contract LaunchpadFactory is Ownable, CloneBase {
 
         IERC20 projectToken;
         uint256 amountAllocation;
+        address crowdsaleOwner;
 
-        (projectToken, amountAllocation) = abi.decode(
+        (projectToken, amountAllocation, crowdsaleOwner) = abi.decode(
             _implementationData,
-            (IERC20, uint256)
+            (IERC20, uint256, address)
         );
 
         require(
@@ -170,7 +171,7 @@ contract LaunchpadFactory is Ownable, CloneBase {
             CrowdsaleInfo({ //creating a variable newCrowdsaleInfo which will hold value in format that of CrowdsaleInfo
                 crowdsaleAddress: address(crowdsaleClone), //setting the value of keys as being passed by crowdsale deployer during the function call
                 projectToken: projectToken,
-                owner: msg.sender
+                owner: crowdsaleOwner
             })
         ); //stacking up every crowdsale info ever made to crowdsales variable
 

@@ -94,6 +94,11 @@ describe("MinimalCrowdsale", function async() {
       "Invalid crowdsale token"
     );
     assert.equal(
+      newCrowdsaleInfo.owner,
+      crowdsaleOwner.address,
+      "Invalid crowdsale owner"
+    );
+    assert.equal(
       newCrowdsaleIsValidInputToken,
       true,
       "Invalid crowdsale input token"
@@ -398,20 +403,20 @@ const encodeImplData = (
     [
       "address",
       "uint256",
+      "address",
       "address[]",
       "uint256[]",
       "uint256",
-      "address",
       "string",
       "uint256",
     ],
     [
       crowdsaleToken,
       amountAllocation,
+      crowdsaleOwner,
       inputTokens,
       rate,
       endTime,
-      crowdsaleOwner,
       tokenURL,
       maxUserAllocation,
     ]
