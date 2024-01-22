@@ -343,7 +343,7 @@ describe("Crowdsale", function async() {
     }
   });
 
-  it("should end crowdsale and withdraw available funds", async function () { 
+  it("should end crowdsale", async function () { 
     const MockERC20 = await ethers.getContractFactory("MockERC20");
     crowdsaleToken = await MockERC20.connect(deployer).deploy("ABC", "XYZ", crowdsaleTokenDecimals);
     inputToken = await MockERC20.connect(investor).deploy("DUM", "DUMMY", inputTokenDecimals);
@@ -393,6 +393,38 @@ describe("Crowdsale", function async() {
     assert.closeTo(crowdsaleVestingEnd.toNumber(), estimatedVestingEnd, 30);
     assert.equal(crowdsaleCliffDuration.toString(), cliffDuration.toString());
     assert.closeTo(crowdsaleEndTime.toNumber(), estimatedEndTime, 30);
+  });
+
+  it("should return input tokens if minimum crowdsale amount not reached", async function () { 
+    const inputTokenAmount = minTokenSaleAmount;
+    const crowdsale = await deployCrowdsale();
+
+    await advanceTime(100);
+    await inputToken.connect(investor).approve(crowdsale.address, inputTokenAmount);
+    await crowdsale.connect(investor).purchaseToken(inputToken.address, inputTokenAmount);
+
+    await advanceTime(endTime - startTime);
+    const crowdsaleInputTokenBalBefore = await inputToken.balanceOf(crowdsale.address);
+    const crowdsaleTokenBalBefore = await crowdsaleToken.balanceOf(crowdsale.address);
+    const userInputTokenBalBefore = await inputToken.balanceOf(investor.address);
+    const userTokenBalBefore = await crowdsaleToken.balanceOf(investor.address);
+
+    await crowdsale.connect(investor).drawDown();
+
+    const crowdsaleInputTokenBalAfter = await inputToken.balanceOf(crowdsale.address);
+    const crowdsaleTokenBalAfter = await crowdsaleToken.balanceOf(crowdsale.address);
+    const userInputTokenBalAfter = await inputToken.balanceOf(investor.address);
+    const userTokenBalAfter = await crowdsaleToken.balanceOf(investor.address);
+
+    assert.equal(
+      crowdsaleInputTokenBalAfter.toString(),
+      crowdsaleInputTokenBalBefore.sub(inputTokenAmount).toString());
+    assert.equal(crowdsaleTokenBalBefore.toString(), crowdsaleTokenBalAfter.toString());
+    assert.equal(
+      userInputTokenBalAfter.toString(),
+      userInputTokenBalBefore.add(inputTokenAmount).toString()
+    );
+    assert.equal(userTokenBalBefore.toString(), userTokenBalAfter.toString());
   });
 
   it("should update owner of Crowdsale", async function () {

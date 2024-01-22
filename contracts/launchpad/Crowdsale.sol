@@ -444,9 +444,6 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
             "Crowdsale: There is no schedule currently in flight"
         );
 
-        uint256 amount = _availableDrawDownAmount(_investor);
-        require(amount > 0, "Crowdsale: No allowance left to withdraw");
-
         if (
             crowdsaleTokenAllocated.sub(tokenRemainingForSale) <=
             minimumTokenSaleAmount
@@ -472,6 +469,9 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
                 }
             }
         } else {
+            uint256 amount = _availableDrawDownAmount(_investor);
+            require(amount > 0, "Crowdsale: No allowance left to withdraw");
+
             // Update last drawn to now
             lastDrawnAt[_investor] = _getNow();
 
