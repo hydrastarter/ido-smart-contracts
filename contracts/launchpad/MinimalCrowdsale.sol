@@ -21,7 +21,7 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
     //@notice the amount of token investor will recieve against 1 inputToken
     mapping(address => uint256) public inputTokenRate;
 
-    IERC20[] private inputToken;
+    IERC20[] public inputToken;
 
     /// @notice end of crowdsale as a timestamp
     uint256 public crowdsaleEndTime;
@@ -31,8 +31,8 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
 
     uint256 public maxUserAllocation;
 
-    /// @notice amount vested for a investor.
-    mapping(address => uint256) public vestedAmount;
+    /// @notice amount purchased for a investor.
+    mapping(address => uint256) public purchasedAmount;
 
     bool public initialized;
 
@@ -50,13 +50,6 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
         uint256 indexed tokenPurchased,
         IERC20 indexed inputToken,
         uint256 tokenRemaining
-    );
-
-    /// @notice event emitted when a successful drawn down of vesting tokens is made
-    event DrawDown(
-        address indexed _investor,
-        uint256 _amount,
-        uint256 indexed drawnTime
     );
 
     /// @notice event emitted when crowdsale is ended manually
@@ -97,23 +90,23 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
         (
             token,
             crowdsaleTokenAllocated,
+            owner,
             inputTokens,
-            _rate,
-            crowdsaleEndTime
+            _rate
         ) = abi.decode(
             _encodedData,
-            (IERC20, uint256, IERC20[], uint256[], uint256)
+            (IERC20, uint256, address, IERC20[], uint256[])
         );
 
-        (, , , , , owner, tokenURL, maxUserAllocation) = abi.decode(
+        (, , , , , crowdsaleEndTime, tokenURL, maxUserAllocation) = abi.decode(
             _encodedData,
             (
                 IERC20,
                 uint256,
+                address,
                 IERC20[],
                 uint256[],
                 uint256,
-                address,
                 string,
                 uint256
             )
@@ -144,7 +137,10 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
     {
         inputTokenRate[_inputToken] = _rate;
 
-        validInputToken[_inputToken] = true;
+        if (!validInputToken[_inputToken]) {
+            inputToken.push(IERC20(_inputToken));
+            validInputToken[_inputToken] = true;
+        }
 
         emit TokenRateUpdated(_inputToken, _rate);
     }
@@ -175,7 +171,7 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
 
         if (maxUserAllocation != 0)
             require(
-                vestedAmount[msg.sender].add(tokenPurchased) <=
+                purchasedAmount[msg.sender].add(tokenPurchased) <=
                     maxUserAllocation,
                 "User Exceeds personal hardcap"
             );
@@ -194,8 +190,6 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
 
         crowdsaleTokenAllocated = crowdsaleTokenAllocated.sub(tokenPurchased);
         _updateVestingSchedule(msg.sender, tokenPurchased);
-
-        // _drawDown(msg.sender);
 
         TransferHelper.safeTransfer(address(token), msg.sender, tokenPurchased);
 
@@ -242,15 +236,15 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
     }
 
     /**
-     * @notice Vesting schedule and associated data for an investor
+     * @notice Total amount purchased for an investor
      * @return _amount
      */
-    function vestingScheduleForBeneficiary(address _investor)
+    function amountPurchasedByUser(address _investor)
         external
         view
         returns (uint256 _amount)
     {
-        return (vestedAmount[_investor]);
+        return (purchasedAmount[_investor]);
     }
 
     function getValidInputTokens() external view returns (IERC20[] memory) {
@@ -282,7 +276,7 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
         require(_investor != address(0), "Beneficiary cannot be empty");
         require(_amount > 0, "Amount cannot be empty");
 
-        vestedAmount[_investor] = vestedAmount[_investor].add(_amount);
+        purchasedAmount[_investor] = purchasedAmount[_investor].add(_amount);
     }
 
     function _getNow() internal view returns (uint256) {

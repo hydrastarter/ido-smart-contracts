@@ -1,6 +1,5 @@
 // File: @openzeppelin/contracts/math/SafeMath.sol
 
-
 pragma solidity 0.7.6;
 
 /**
@@ -58,7 +57,11 @@ library SafeMath {
      *
      * - Subtraction cannot overflow.
      */
-    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b <= a, errorMessage);
         uint256 c = a - b;
 
@@ -117,7 +120,11 @@ library SafeMath {
      *
      * - The divisor cannot be zero.
      */
-    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b > 0, errorMessage);
         uint256 c = a / b;
         // assert(a == b * c + a % b); // There is no case in which this doesn't hold
@@ -153,7 +160,11 @@ library SafeMath {
      *
      * - The divisor cannot be zero.
      */
-    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+    function mod(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
         require(b != 0, errorMessage);
         return a % b;
     }
@@ -161,19 +172,12 @@ library SafeMath {
 
 // File: contracts/test/MockERC20.sol
 
-
 // SPDX-License-Identifier: MIT
 
-
 contract MockERC20 {
-
     using SafeMath for uint256;
 
-    event Transfer(
-        address indexed _from,
-        address indexed _to,
-        uint256 _value
-    );
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
 
     event Approval(
         address indexed _owner,
@@ -181,22 +185,23 @@ contract MockERC20 {
         uint256 _value
     );
 
-
     uint256 tokenTotalSupply;
 
     string private tokenName;
 
     string private tokenSymbol;
 
-    uint8  private tokenDecimals;
+    uint8 private tokenDecimals;
 
     mapping(address => uint256) balances;
-    mapping(address => mapping (address => uint256)) allowed;
+    mapping(address => mapping(address => uint256)) allowed;
 
-    constructor(string memory _symbol, string memory _name, uint8 _decimals)
-        public
-    {
-        tokenTotalSupply = 100000000000000000000000000; // 100 million tokens
+    constructor(
+        string memory _symbol,
+        string memory _name,
+        uint8 _decimals
+    ) public {
+        tokenTotalSupply = 100_000_000 * 10 ** _decimals; // 100 million tokens
 
         tokenSymbol = _symbol;
         tokenName = _name;
@@ -225,18 +230,17 @@ contract MockERC20 {
         return balances[_owner];
     }
 
-    function allowance(address _owner, address _spender)
-        external
-        view
-        returns (uint256 remaining_)
-    {
+    function allowance(
+        address _owner,
+        address _spender
+    ) external view returns (uint256 remaining_) {
         remaining_ = allowed[_owner][_spender];
     }
 
-    function transfer(address _to, uint256 _value)
-        external
-        returns (bool success)
-    {
+    function transfer(
+        address _to,
+        uint256 _value
+    ) external returns (bool success) {
         // According to the EIP20 spec, "transfers of 0 values MUST be treated
         // as normal transfers and fire the Transfer event".
         // Also, should throw if not enough balance.
@@ -250,10 +254,11 @@ contract MockERC20 {
         return true;
     }
 
-    function transferFrom(address _from, address _to, uint256 _value)
-        external
-        returns (bool success)
-    {
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _value
+    ) external returns (bool success) {
         balances[_from] = balances[_from].sub(_value);
         allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
@@ -263,10 +268,10 @@ contract MockERC20 {
         return true;
     }
 
-    function approve(address _spender, uint256 _value)
-        external
-        returns (bool success)
-    {
+    function approve(
+        address _spender,
+        uint256 _value
+    ) external returns (bool success) {
         allowed[msg.sender][_spender] = _value;
 
         emit Approval(msg.sender, _spender, _value);
@@ -274,13 +279,8 @@ contract MockERC20 {
         return true;
     }
 
-    function mint(address _owner, uint256 _value)
-        private
-    {
-        require(
-            _owner != address(0),
-            "The account to set balance is null."
-        );
+    function mint(address _owner, uint256 _value) private {
+        require(_owner != address(0), "The account to set balance is null.");
 
         balances[_owner] = balances[_owner].add(_value);
 
@@ -292,5 +292,4 @@ contract MockERC20 {
 
         emit Transfer(msg.sender, address(0x00), amount);
     }
-
 }

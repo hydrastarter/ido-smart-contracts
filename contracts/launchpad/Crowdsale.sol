@@ -139,17 +139,17 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
         IERC20[] memory inputTokens;
         bytes memory _crowdsaleTimings;
         bytes memory _whitelist;
-        uint256 _rate;
+        uint256[] memory _rate;
         string memory tokenURL;
         (
             token,
             crowdsaleTokenAllocated,
+            owner,
             inputTokens,
-            _rate,
-            _crowdsaleTimings
+            _rate
         ) = abi.decode(
             _encodedData,
-            (IERC20, uint256, IERC20[], uint256, bytes)
+            (IERC20, uint256, address, IERC20[], uint256[])
         );
         (
             ,
@@ -157,8 +157,8 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
             ,
             ,
             ,
+            _crowdsaleTimings,
             _whitelist,
-            owner,
             tokenURL,
             minimumTokenSaleAmount,
             maxUserAllocation
@@ -167,11 +167,11 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
             (
                 IERC20,
                 uint256,
+                address,
                 IERC20[],
                 uint256,
                 bytes,
                 bytes,
-                address,
                 string,
                 uint256,
                 uint256
@@ -192,7 +192,7 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
         for (uint256 i = 0; i < inputTokens.length; i++) {
             inputToken.push(inputTokens[i]);
             validInputToken[address(inputTokens[i])] = true;
-            inputTokenRate[address(inputTokens[i])] = _rate;
+            inputTokenRate[address(inputTokens[i])] = _rate[i];
             _updateMeta(address(inputTokens[i]), address(0), "");
         }
         (
@@ -223,6 +223,9 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
                 vestingEnd > vestingStart.add(cliffDuration),
                 "Crowdsale: Vesting End Time should after the cliffPeriod"
             );
+        } else {
+            require(vestingStart == 0 && vestingEnd == 0 && cliffDuration == 0,
+            "Crowdsale: Vesting values should be zero if crowdsaleEndTime is zero");
         }
 
         tokenRemainingForSale = crowdsaleTokenAllocated;
@@ -258,7 +261,10 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
 
         inputTokenRate[_inputToken] = _rate;
 
-        validInputToken[_inputToken] = true;
+        if (!validInputToken[_inputToken]) {
+            inputToken.push(IERC20(_inputToken));
+            validInputToken[_inputToken] = true;
+        }
 
         emit TokenRateUpdated(_inputToken, _rate);
     }
@@ -441,11 +447,8 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
             "Crowdsale: There is no schedule currently in flight"
         );
 
-        uint256 amount = _availableDrawDownAmount(_investor);
-        require(amount > 0, "Crowdsale: No allowance left to withdraw");
-
         if (
-            crowdsaleTokenAllocated.sub(tokenRemainingForSale) <=
+            crowdsaleTokenAllocated.sub(tokenRemainingForSale) <
             minimumTokenSaleAmount
         ) {
             for (uint256 i = 0; i < inputToken.length; i++) {
@@ -469,6 +472,9 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
                 }
             }
         } else {
+            uint256 amount = _availableDrawDownAmount(_investor);
+            require(amount > 0, "Crowdsale: No allowance left to withdraw");
+
             // Update last drawn to now
             lastDrawnAt[_investor] = _getNow();
 
@@ -542,6 +548,20 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
             "Crowdsale: The contract doesnt have tokens"
         );
 
+        if (
+            crowdsaleTokenAllocated.sub(tokenRemainingForSale) <
+            minimumTokenSaleAmount
+        ) {
+            require(
+                _token == token,
+                "Crowdsale: Only crowdsale token can be withdrawn"
+            );
+        } else if (_token == token) {
+            require (
+                _amount <= tokenRemainingForSale,
+                "Crowdsale: Can only withdraw unsold tokens");
+        }
+
         TransferHelper.safeTransfer(address(_token), msg.sender, _amount);
 
         emit FundsWithdrawn(msg.sender, _token, _amount);
@@ -592,6 +612,9 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
     function updateMinimumTokenSaleAmount(
         uint256 _minimumTokenSaleAmount
     ) external onlyOwner {
+        if (crowdsaleEndTime != 0) {
+            require(_getNow() < crowdsaleEndTime, "Crowdsale: Crowdsale Ended");
+        }
         require(
             _minimumTokenSaleAmount <= crowdsaleTokenAllocated,
             "Crowdsale: Minimum Token Sale amount cannot be greater than total token allowence"

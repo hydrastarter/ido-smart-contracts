@@ -4,7 +4,7 @@ require("@reef-chain/hardhat-reef");
 require("@openzeppelin/hardhat-upgrades");
 
 module.exports = {
-  defaultNetwork: "reef_testnet",
+  defaultNetwork: "hardhat",
   networks: {
     localhost: {
       url: "http://localhost:8545", // uses account 0 of the hardhat node to deploy

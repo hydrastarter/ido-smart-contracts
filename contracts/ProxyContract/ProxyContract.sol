@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+pragma solidity 0.7.6;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -28,12 +28,6 @@ contract ProxyContract is AccessControl {
         _;
     }
 
-    function updateOwnerOfLaunchpadFactory(
-        address _newOwner
-    ) external onlyAdmin {
-        launchpadFactory.transferOwnership(_newOwner);
-    }
-
     function launchCrowdsale(
         uint256 _id,
         bytes memory _implementationData
@@ -57,7 +51,7 @@ contract ProxyContract is AccessControl {
             address(this),
             amountAllocation
         );
-         TransferHelper.safeApprove(
+        TransferHelper.safeApprove(
             address(projectToken),
             address(launchpadFactory),
             amountAllocation

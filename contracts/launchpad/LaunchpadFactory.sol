@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.7.6;
+pragma solidity 0.7.6;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -27,15 +27,30 @@ contract LaunchpadFactory is Ownable, CloneBase {
     /// @notice Counter for saving implementation IDs
     uint256 public nextId;
 
+    /// @notice Authorized address to launch crowdsales
+    address public crowdsaleLauncher;
+
     event CrowdsaleLaunched(
         uint256 indexed id,
         address indexed crowdsaleAddress,
         IERC20 indexed token
     );
 
+    event CrowdsaleLauncherUpdated(address newCrowdsaleLauncher);
+
     event ImplementationAdded(uint256 id, address newImplementation);
 
     event ImplementationUpdated(uint256 id, address updatedImplementation);
+
+    /// @notice Sets crowdsale laucher address.
+    /// @dev Address zero allowed for disabling crowdsale launcher.
+    /// @param _crowdsaleLauncher The address of the new crowdsale launcher.
+    function setCrowdsaleLauncher(
+        address _crowdsaleLauncher
+    ) external onlyOwner {
+        crowdsaleLauncher = _crowdsaleLauncher;
+        emit CrowdsaleLauncherUpdated(_crowdsaleLauncher);
+    }
 
     /// @notice Adds a new implementation with the given address.
     /// @param _newImplementation The address of the new implementation.
@@ -72,7 +87,11 @@ contract LaunchpadFactory is Ownable, CloneBase {
     function launchCrowdsale(
         uint256 _id,
         bytes memory _implementationData
-    ) external onlyOwner returns (address crowdsaleAddress) {
+    ) external returns (address crowdsaleAddress) {
+        require(
+            msg.sender == crowdsaleLauncher,
+            "LaunchpadFactory: Only launcher"
+        );
         crowdsaleAddress = _launchCrowdsale(_id, _implementationData);
     }
 
@@ -119,10 +138,11 @@ contract LaunchpadFactory is Ownable, CloneBase {
 
         IERC20 projectToken;
         uint256 amountAllocation;
+        address crowdsaleOwner;
 
-        (projectToken, amountAllocation) = abi.decode(
+        (projectToken, amountAllocation, crowdsaleOwner) = abi.decode(
             _implementationData,
-            (IERC20, uint256)
+            (IERC20, uint256, address)
         );
 
         require(
@@ -151,7 +171,7 @@ contract LaunchpadFactory is Ownable, CloneBase {
             CrowdsaleInfo({ //creating a variable newCrowdsaleInfo which will hold value in format that of CrowdsaleInfo
                 crowdsaleAddress: address(crowdsaleClone), //setting the value of keys as being passed by crowdsale deployer during the function call
                 projectToken: projectToken,
-                owner: msg.sender
+                owner: crowdsaleOwner
             })
         ); //stacking up every crowdsale info ever made to crowdsales variable
 
