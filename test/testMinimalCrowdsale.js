@@ -267,6 +267,24 @@ describe("MinimalCrowdsale", function async() {
     assert.equal(updatedRate.toString(), newRate.toString());
   });
 
+  it("should add input token", async function () {
+    const MockERC20 = await ethers.getContractFactory("MockERC20");
+    const inputToken2 = await MockERC20.connect(investor).deploy("DUM2", "DUMMY2", inputTokenDecimals);
+    const newRate = toToken(2, 18);
+
+    const minimalCrowdsale = await deployMinimalCrowdsale();
+    minimalCrowdsale.connect(crowdsaleOwner).updateInputTokenRate(inputToken2.address, newRate);
+    const updatedRate = await minimalCrowdsale.inputTokenRate(inputToken2.address);
+    const inputToken2IsValid = await minimalCrowdsale.validInputToken(inputToken2.address);
+    const crowdsaleInputToken2 = await minimalCrowdsale.inputToken(1);
+    const crowdsaleInputTokens = await minimalCrowdsale.getValidInputTokens();
+
+    assert.equal(updatedRate.toString(), newRate.toString());
+    expect(inputToken2IsValid).to.be.true;
+    assert.equal(crowdsaleInputToken2, inputToken2.address);
+    assert.equal(crowdsaleInputTokens.length, 2);
+  });
+
   it("should update max user allocation", async function () {
     const newMaxUserAllocation = toToken(972, crowdsaleTokenDecimals);
     const minimalCrowdsale = await deployMinimalCrowdsale();

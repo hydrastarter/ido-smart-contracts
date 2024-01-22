@@ -416,12 +416,14 @@ describe("Crowdsale", function async() {
     const crowdsale = await deployCrowdsale();
     crowdsale.connect(crowdsaleOwner).updateInputTokenRate(inputToken2.address, newRate);
     const updatedRate = await crowdsale.inputTokenRate(inputToken2.address);
-    // const crowdsaleInputToken2 = await crowdsale.inputToken(1);
+    const inputToken2IsValid = await crowdsale.validInputToken(inputToken2.address);
+    const crowdsaleInputToken2 = await crowdsale.inputToken(1);
     const crowdsaleInputTokens = await crowdsale.getValidInputTokens();
 
     assert.equal(updatedRate.toString(), newRate.toString());
-    // assert.equal(crowdsaleInputToken2, inputToken2.address);
-    // assert.equal(crowdsaleInputTokens.length, 2);
+    expect(inputToken2IsValid).to.be.true;
+    assert.equal(crowdsaleInputToken2, inputToken2.address);
+    assert.equal(crowdsaleInputTokens.length, 2);
   });
 
   it("should update max user allocation", async function () {

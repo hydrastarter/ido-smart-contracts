@@ -258,7 +258,10 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
 
         inputTokenRate[_inputToken] = _rate;
 
-        validInputToken[_inputToken] = true;
+        if (!validInputToken[_inputToken]) {
+            inputToken.push(IERC20(_inputToken));
+            validInputToken[_inputToken] = true;
+        }
 
         emit TokenRateUpdated(_inputToken, _rate);
     }

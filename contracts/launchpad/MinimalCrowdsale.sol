@@ -21,7 +21,7 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
     //@notice the amount of token investor will recieve against 1 inputToken
     mapping(address => uint256) public inputTokenRate;
 
-    IERC20[] private inputToken;
+    IERC20[] public inputToken;
 
     /// @notice end of crowdsale as a timestamp
     uint256 public crowdsaleEndTime;
@@ -144,7 +144,10 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
     {
         inputTokenRate[_inputToken] = _rate;
 
-        validInputToken[_inputToken] = true;
+        if (!validInputToken[_inputToken]) {
+            inputToken.push(IERC20(_inputToken));
+            validInputToken[_inputToken] = true;
+        }
 
         emit TokenRateUpdated(_inputToken, _rate);
     }
