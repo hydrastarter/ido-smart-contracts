@@ -97,5 +97,4 @@ describe("ProxyContract", function async() {
       proxyContract.connect(otherAccount).launchCrowdsale(1, "0x")
     ).to.be.revertedWith("Not the Deployer");
   });
-
 });

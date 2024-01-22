@@ -17,9 +17,9 @@ const increase = async (value) => {
   await advanceBlock();
 };
 
-const latest = async function () {
+const latestTimestamp = async function () {
   const block = await ethers.provider.getBlock("latest");
-  return BigNumber.from(block.timestamp);
+  return block.timestamp;
 };
 
 const advanceTimeAndBlock = async function (time) {
@@ -60,11 +60,14 @@ const revertToSnapShot = async (id) => {
     return ethers.provider.send("evm_revert", [id]);
 };
   
-  module.exports = {
-    advanceTime,
-    advanceBlock,
-    latest,
-    advanceTimeAndBlock,
-    takeSnapShot,
-    revertToSnapShot
-  }
+module.exports = {
+  advanceTime,
+  advanceBlock,
+  advanceBlockTo,
+  increase,
+  latestTimestamp,
+  advanceTimeAndBlock,
+  duration,
+  takeSnapShot,
+  revertToSnapShot,
+}
