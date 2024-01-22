@@ -31,8 +31,8 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
 
     uint256 public maxUserAllocation;
 
-    /// @notice amount vested for a investor.
-    mapping(address => uint256) public vestedAmount;
+    /// @notice amount purchased for a investor.
+    mapping(address => uint256) public purchasedAmount;
 
     bool public initialized;
 
@@ -171,7 +171,7 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
 
         if (maxUserAllocation != 0)
             require(
-                vestedAmount[msg.sender].add(tokenPurchased) <=
+                purchasedAmount[msg.sender].add(tokenPurchased) <=
                     maxUserAllocation,
                 "User Exceeds personal hardcap"
             );
@@ -236,15 +236,15 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
     }
 
     /**
-     * @notice Vesting schedule and associated data for an investor
+     * @notice Total amount purchased for an investor
      * @return _amount
      */
-    function vestingScheduleForBeneficiary(address _investor)
+    function amountPurchasedByUser(address _investor)
         external
         view
         returns (uint256 _amount)
     {
-        return (vestedAmount[_investor]);
+        return (purchasedAmount[_investor]);
     }
 
     function getValidInputTokens() external view returns (IERC20[] memory) {
@@ -276,7 +276,7 @@ contract MinimalCrowdsale is ReentrancyGuard, Ownable, Metadata {
         require(_investor != address(0), "Beneficiary cannot be empty");
         require(_amount > 0, "Amount cannot be empty");
 
-        vestedAmount[_investor] = vestedAmount[_investor].add(_amount);
+        purchasedAmount[_investor] = purchasedAmount[_investor].add(_amount);
     }
 
     function _getNow() internal view returns (uint256) {
