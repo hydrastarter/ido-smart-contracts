@@ -139,7 +139,7 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
         IERC20[] memory inputTokens;
         bytes memory _crowdsaleTimings;
         bytes memory _whitelist;
-        uint256 _rate;
+        uint256[] memory _rate;
         string memory tokenURL;
         (
             token,
@@ -149,7 +149,7 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
             _crowdsaleTimings
         ) = abi.decode(
             _encodedData,
-            (IERC20, uint256, IERC20[], uint256, bytes)
+            (IERC20, uint256, IERC20[], uint256[], bytes)
         );
         (
             ,
@@ -192,7 +192,7 @@ contract Crowdsale is ReentrancyGuard, Ownable, Metadata {
         for (uint256 i = 0; i < inputTokens.length; i++) {
             inputToken.push(inputTokens[i]);
             validInputToken[address(inputTokens[i])] = true;
-            inputTokenRate[address(inputTokens[i])] = _rate;
+            inputTokenRate[address(inputTokens[i])] = _rate[i];
             _updateMeta(address(inputTokens[i]), address(0), "");
         }
         (

@@ -71,7 +71,7 @@ describe("Crowdsale", function async() {
       crowdsaleToken.address,
       amountAllocation,
       [inputToken.address],
-      rate,
+      [rate],
       crowdsaleOwner.address,
       tokenURL,
       minTokenSaleAmount,
@@ -296,7 +296,7 @@ describe("Crowdsale", function async() {
         crowdsaleToken.address,
         amountAllocation,
         [inputToken.address],
-        toToken(rateUnit, 18),
+        [toToken(rateUnit, 18)],
         crowdsaleOwner.address,
         tokenURL,
         minTokenSaleAmount,
@@ -361,7 +361,7 @@ describe("Crowdsale", function async() {
       crowdsaleToken.address,
       amountAllocation,
       [inputToken.address],
-      rate,
+      [rate],
       crowdsaleOwner.address,
       tokenURL,
       minTokenSaleAmount,
@@ -477,13 +477,7 @@ describe("Crowdsale", function async() {
     userTokenBalAfter = await crowdsaleToken.balanceOf(investor.address);
     assert(userTokenBalAfter.gt(userTokenBalBefore));
 
-    await advanceTime(200);
-    userTokenBalBefore = userTokenBalAfter
-    await crowdsale.connect(investor).drawDown();
-    userTokenBalAfter = await crowdsaleToken.balanceOf(investor.address);
-    assert(userTokenBalAfter.gt(userTokenBalBefore));
-
-    await advanceTime(20);
+    await advanceTime(220);
     userTokenBalBefore = userTokenBalAfter
     await crowdsale.connect(investor).drawDown();
     userTokenBalAfter = await crowdsaleToken.balanceOf(investor.address);
@@ -648,7 +642,7 @@ describe("Crowdsale", function async() {
       crowdsaleToken.address,
       amountAllocation,
       [inputToken.address],
-      rate,
+      [rate],
       crowdsaleOwner.address,
       tokenURL,
       minTokenSaleAmount,
@@ -721,7 +715,7 @@ describe("Crowdsale", function async() {
       crowdsaleToken.address,
       amountAllocation,
       [inputToken.address],
-      rate,
+      [rate],
       crowdsaleOwner.address,
       tokenURL,
       minTokenSaleAmount,
@@ -774,7 +768,7 @@ const encodeImplData = (
       "address",
       "uint256",
       "address[]",
-      "uint256",
+      "uint256[]",
       "bytes",
       "bytes",
       "address",
