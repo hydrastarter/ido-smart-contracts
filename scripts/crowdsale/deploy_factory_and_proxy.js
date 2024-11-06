@@ -25,7 +25,7 @@ async function main() {
       deployerAccount
   );
 
-  const proxyAdminAddress = deployerAccount.getAddress();
+  const proxyAdminAddress = await deployerAccount.getAddress();
   const launchpadFactoryAddress = launchpadFactoryInstance.address;
   const proxyContractInstance = await ProxyContract.deploy(
       proxyAdminAddress,

@@ -22,6 +22,6 @@ yarn run compile
 
 | Name | Address | Reefscan Link |
 | :--- | :--- | :--- |
-| Launchpad Factory | 0x61BD471D713b2E24b511bB0b598ec0Da3ba8DBef | [Reefscan Testnet](https://testnet.reefscan.com/contract/0x61BD471D713b2E24b511bB0b598ec0Da3ba8DBef) |
-| Crowdsale | 0x4F89489c7F5b6d665f6089157e249dF67Ed46f96 | [Reefscan Testnet](https://testnet.reefscan.com/contract/0x4F89489c7F5b6d665f6089157e249dF67Ed46f96) |
+| Launchpad Factory | 0xf401b3Ec2298B80547B53dEEB8906677102A7F4B | [Reefscan Testnet](https://testnet.reefscan.com/contract/0xf401b3Ec2298B80547B53dEEB8906677102A7F4B) |
+| Crowdsale | 0xEdA03B4BaFa8d2f164a48E2B63a1b3444D3d3A6b | [Reefscan Testnet](https://testnet.reefscan.com/contract/0xEdA03B4BaFa8d2f164a48E2B63a1b3444D3d3A6b) |
 
