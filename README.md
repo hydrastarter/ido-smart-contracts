@@ -18,10 +18,12 @@ yarn
 yarn run compile
 ```
 
+https://github.com/hydrastarter/ido-frontend/blob/b5818a9980d37a2415e3d3f38fbb2d0e41e05b90/src/pages/admin/index.tsx#L1201
+
 ### Testnet Deployed Contracts
 
 | Name | Address | Reefscan Link |
 | :--- | :--- | :--- |
-| Launchpad Factory | 0xf401b3Ec2298B80547B53dEEB8906677102A7F4B | [Reefscan Testnet](https://testnet.reefscan.com/contract/0xf401b3Ec2298B80547B53dEEB8906677102A7F4B) |
-| Crowdsale | 0xEdA03B4BaFa8d2f164a48E2B63a1b3444D3d3A6b | [Reefscan Testnet](https://testnet.reefscan.com/contract/0xEdA03B4BaFa8d2f164a48E2B63a1b3444D3d3A6b) |
+| Launchpad Factory | 0xcBA15dCb42a4F8Fee5A24e2B4fBdCbD0Df843Eb4 | [Reefscan Mainnet](https://testnet.reefscan.com/contract/0xcBA15dCb42a4F8Fee5A24e2B4fBdCbD0Df843Eb4) |
+| Crowdsale | 0x31e8EfCB7D6816d9C0A7cdDcc94390aF9548ab6D | [Reefscan Mainnet](https://testnet.reefscan.com/contract/0x31e8EfCB7D6816d9C0A7cdDcc94390aF9548ab6D) |
 
