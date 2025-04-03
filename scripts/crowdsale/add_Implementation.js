@@ -1,11 +1,11 @@
 const hre = require("hardhat");
 
 async function main() {
-    const contractAddress = "0x61BD471D713b2E24b511bB0b598ec0Da3ba8DBef";
+    const contractAddress = "0x219c9F5C9b8548aA7925f71650D131C474f9c62c";
     const signer = await hre.reef.getSignerByName("testnet_account");
     const LaunchpadFactory = await hre.reef.getContractAt("LaunchpadFactory", contractAddress, signer);
 
-    await LaunchpadFactory.addImplementation("0x4F89489c7F5b6d665f6089157e249dF67Ed46f96");
+    await LaunchpadFactory.addImplementation("0xf81e2d6eB63F854062e08Dc66808CA32133dBff5");
 
     console.log("Current Implementation", await LaunchpadFactory.implementationIdVsImplementation(0));
 }

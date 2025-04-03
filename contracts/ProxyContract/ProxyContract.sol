@@ -35,14 +35,39 @@ contract ProxyContract is AccessControl {
         IERC20 projectToken;
         uint256 amountAllocation;
 
+        // Debug 1: Check if data is long enough
+        require(
+            _implementationData.length >= 64,
+            "launchCrowdsale: Invalid data length"
+        );
+
         (projectToken, amountAllocation) = abi.decode(
             _implementationData,
             (IERC20, uint256)
         );
 
+        // Debug 2: Check decoded values
         require(
             address(projectToken) != address(0),
-            "LaunchpadFactory: Cant be Zero address"
+            "launchCrowdsale: Token address is zero"
+        );
+        require(
+            amountAllocation > 0,
+            "launchCrowdsale: Allocation must be > 0"
+        );
+
+        // Debug 3: Check allowance
+        uint256 allowance = projectToken.allowance(msg.sender, address(this));
+        require(
+            allowance >= amountAllocation,
+            "launchCrowdsale: Not enough allowance"
+        );
+
+        // Debug 4: Check balance
+        uint256 balance = projectToken.balanceOf(msg.sender);
+        require(
+            balance >= amountAllocation,
+            "launchCrowdsale: Not enough balance"
         );
 
         TransferHelper.safeTransferFrom(
@@ -56,6 +81,7 @@ contract ProxyContract is AccessControl {
             address(launchpadFactory),
             amountAllocation
         );
+
         return launchpadFactory.launchCrowdsale(_id, _implementationData);
     }
 

@@ -10,7 +10,7 @@ async function main() {
 
   await launchpadFactoryInstance.deployTransaction.wait([(confirms = 20)]);
 
-  console.log("1/3 Launchpad factory deployed:", launchpadFactoryInstance.address);
+  console.log("1/4 Launchpad factory deployed:", launchpadFactoryInstance.address);
 
   await hre.reef.verifyContract(
     launchpadFactoryInstance.address,
@@ -35,7 +35,7 @@ async function main() {
 
   await proxyContractInstance.deployTransaction.wait([(confirms = 20)]);
 
-  console.log("2/3 Proxy Contract deployed:", proxyContractInstance.address);
+  console.log("2/4 Proxy Contract deployed:", proxyContractInstance.address);
 
   await hre.reef.verifyContract(
       proxyContractInstance.address,
@@ -45,7 +45,22 @@ async function main() {
 
   await launchpadFactoryInstance.setCrowdsaleLauncher(proxyContractInstance.address);
 
-  console.log('3/3 Crowdsale launcher set to proxy');
+  console.log('3/4 Crowdsale launcher set to proxy');
+
+  const Crowdsale = await hre.reef.getContractFactory("Crowdsale", deployerAccount);
+  const crowdSaleInstance = await Crowdsale.deploy();
+
+  await crowdSaleInstance.deployed();
+  await crowdSaleInstance.deployTransaction.wait([(confirms = 20)]);
+  console.log("Deploy done");
+
+  await hre.reef.verifyContract(crowdSaleInstance.address, "Crowdsale", []);
+
+  await launchpadFactoryInstance.addImplementation(crowdSaleInstance.address);
+
+  await proxyContractInstance.addDeployerAddress(proxyAdminAddress);
+
+  console.log("4/4 Crowdsale implementation added ", await launchpadFactoryInstance.implementationIdVsImplementation(0));
 
   console.log('All complete');
 
