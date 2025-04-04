@@ -9,8 +9,8 @@ async function main() {
   );
 
 
-  const adminAddress = "0x...";
-  const launchpadFactoryAddress = "0x...";
+  const adminAddress = "0x7Ca7886e0b851e6458770BC1d85Feb6A5307b9a2";
+  const launchpadFactoryAddress = "0xf81e2d6eB63F854062e08Dc66808CA32133dBff5";
   const proxyContractInstance = await ProxyContract.deploy(
     adminAddress,
     launchpadFactoryAddress

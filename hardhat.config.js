@@ -4,10 +4,10 @@ require("@reef-chain/hardhat-reef");
 require("@openzeppelin/hardhat-upgrades");
 
 module.exports = {
-  defaultNetwork: "reef_testnet",
+  defaultNetwork: "reef_mainnet",
   networks: {
     localhost: {
-      url: "http://localhost:8545", // uses account 0 of the hardhat node to deploy
+      url: "http://127.0.0.1:8545/", // uses account 0 of the hardhat node to deploy
     },
     reef_testnet: {
       url: "wss://rpc-testnet.reefscan.com/ws",
@@ -21,7 +21,7 @@ module.exports = {
       url: "wss://rpc.reefscan.com/ws",
       scanUrl: "https://api.reefscan.com",
       seeds: {
-        mainnet_account: process.env.MNEMONIC_MAINNET || "",
+        testnet_account: process.env.MNEMONIC_MAINNET || "expire pepper arena virus budget craft industry hawk devote major symbol labor",
       },
     },
   },

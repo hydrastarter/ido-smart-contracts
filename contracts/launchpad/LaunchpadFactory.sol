@@ -42,7 +42,7 @@ contract LaunchpadFactory is Ownable, CloneBase {
 
     event ImplementationUpdated(uint256 id, address updatedImplementation);
 
-    /// @notice Sets crowdsale laucher address.
+    /// @notice Sets crowdsale launcher address.
     /// @dev Address zero allowed for disabling crowdsale launcher.
     /// @param _crowdsaleLauncher The address of the new crowdsale launcher.
     function setCrowdsaleLauncher(
@@ -92,6 +92,7 @@ contract LaunchpadFactory is Ownable, CloneBase {
             msg.sender == crowdsaleLauncher,
             "LaunchpadFactory: Only launcher"
         );
+
         crowdsaleAddress = _launchCrowdsale(_id, _implementationData);
     }
 
@@ -129,27 +130,41 @@ contract LaunchpadFactory is Ownable, CloneBase {
     function _launchCrowdsale(
         uint256 _id,
         bytes memory _implementationData
-    ) internal returns (address) {
+    ) internal returns (address crowdsaleAddress) {
         address crowdsaleLibrary = implementationIdVsImplementation[_id];
         require(
             crowdsaleLibrary != address(0),
-            "LaunchpadFactory: Incorrect Id"
+            "LaunchpadFactory: Invalid implementation ID"
         );
 
-        IERC20 projectToken;
-        uint256 amountAllocation;
-        address crowdsaleOwner;
+        // Check encoded data length
+        require(
+            _implementationData.length >= 96,
+            "LaunchpadFactory: Invalid encoded data"
+        );
 
-        (projectToken, amountAllocation, crowdsaleOwner) = abi.decode(
+        (IERC20 projectToken, uint256 amountAllocation, address crowdsaleOwner) = abi.decode(
             _implementationData,
             (IERC20, uint256, address)
         );
 
         require(
             address(projectToken) != address(0),
-            "LaunchpadFactory: Cant be Zero address"
+            "LaunchpadFactory: Token address is zero"
         );
 
+        require(amountAllocation > 0, "LaunchpadFactory: Allocation must be > 0");
+        require(crowdsaleOwner != address(0), "LaunchpadFactory: Owner is zero");
+
+        // Check allowance
+        uint256 allowance = projectToken.allowance(msg.sender, address(this));
+        require(allowance >= amountAllocation, "LaunchpadFactory: Insufficient token allowance");
+
+        // Check balance
+        uint256 balance = projectToken.balanceOf(msg.sender);
+        require(balance >= amountAllocation, "LaunchpadFactory: Insufficient token balance");
+
+        // Pull tokens to factory
         TransferHelper.safeTransferFrom(
             address(projectToken),
             msg.sender,
@@ -158,22 +173,22 @@ contract LaunchpadFactory is Ownable, CloneBase {
         );
 
         address crowdsaleClone = createClone(crowdsaleLibrary);
+        require(crowdsaleClone != address(0), "LaunchpadFactory: Clone creation failed");
 
+        // Approve token to new crowdsale
         TransferHelper.safeApprove(
             address(projectToken),
             address(crowdsaleClone),
             amountAllocation
         );
 
-        IMinimalProxy(crowdsaleClone).init(_implementationData);
-
         crowdsales.push(
-            CrowdsaleInfo({ //creating a variable newCrowdsaleInfo which will hold value in format that of CrowdsaleInfo
-                crowdsaleAddress: address(crowdsaleClone), //setting the value of keys as being passed by crowdsale deployer during the function call
+            CrowdsaleInfo({
+                crowdsaleAddress: address(crowdsaleClone),
                 projectToken: projectToken,
                 owner: crowdsaleOwner
             })
-        ); //stacking up every crowdsale info ever made to crowdsales variable
+        );
 
         emit CrowdsaleLaunched(_id, address(crowdsaleClone), projectToken);
 
